@@ -1,0 +1,30 @@
+version: "4"
+services:
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB}
+      - MONGO_INITDB_USER=${MONGO_USERNAME}
+      - MONGO_INITDB_PWD=${MONGO_PASSWORD}
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    volumes:
+      - "$PWD/mongo-init/:/docker-entrypoint-initdb.d/"
+      - "./data:/data/db"
+    command: mongod --quiet --logpath /dev/null --port ${MONGO_PORT}
+
+  distriator:
+    container_name: distriator_container
+    image: distriator_image
+    environment:
+      - DB=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongo:${MONGO_PORT}/${MONGO_DB}?authSource=${MONGO_DB}
+    restart: always
+    build: .
+    ports:
+      - "${PORT}:${PORT}"
+    links:
+      - mongo
